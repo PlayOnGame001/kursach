@@ -1,0 +1,321 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: yourname
+      changes:
+        - createTable:
+            tableName: cars
+            columns:
+              - column:
+                  name: car_id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: brand
+                  type: VARCHAR(100)
+              - column:
+                  name: release_year
+                  type: INT
+              - column:
+                  name: price
+                  type: DOUBLE
+              - column:
+                  name: repair_duration
+                  type: INT
+        - createIndex:
+            indexName: idx_cars_brand_year
+            tableName: cars
+            columns:
+              - column:
+                  name: brand
+              - column:
+                  name: release_year
+
+  - changeSet:
+      id: 2
+      author: yourname
+      changes:
+        - createTable:
+            tableName: clients
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: service_station_name
+                  type: VARCHAR(255)
+              - column:
+                  name: full_name
+                  type: VARCHAR(255)
+              - column:
+                  name: phone_number
+                  type: VARCHAR(50)
+              - column:
+                  name: problem
+                  type: VARCHAR(255)
+              - column:
+                  name: car_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: clients
+            baseColumnNames: car_id
+            referencedTableName: cars
+            referencedColumnNames: car_id
+            constraintName: fk_client_car
+        - createIndex:
+            indexName: idx_clients_phone
+            tableName: clients
+            columns:
+              - column:
+                  name: phone_number
+
+  - changeSet:
+      id: 3
+      author: yourname
+      changes:
+        - createTable:
+            tableName: masters
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: service_station_name
+                  type: VARCHAR(255)
+              - column:
+                  name: full_name
+                  type: VARCHAR(255)
+              - column:
+                  name: phone_number
+                  type: VARCHAR(50)
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+              - column:
+                  name: specialization
+                  type: VARCHAR(255)
+        - createIndex:
+            indexName: idx_masters_phone
+            tableName: masters
+            columns:
+              - column:
+                  name: phone_number
+
+  - changeSet:
+      id: 4
+      author: yourname
+      changes:
+        - createTable:
+            tableName: complaints
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: content
+                  type: VARCHAR(1000)
+              - column:
+                  name: client_id
+                  type: BIGINT
+              - column:
+                  name: master_id
+                  type: BIGINT
+              - column:
+                  name: status
+                  type: VARCHAR(100)
+        - addForeignKeyConstraint:
+            baseTableName: complaints
+            baseColumnNames: client_id
+            referencedTableName: clients
+            referencedColumnNames: id
+            constraintName: fk_complaint_client
+        - addForeignKeyConstraint:
+            baseTableName: complaints
+            baseColumnNames: master_id
+            referencedTableName: masters
+            referencedColumnNames: id
+            constraintName: fk_complaint_master
+
+  - changeSet:
+      id: 5
+      author: yourname
+      changes:
+        - createTable:
+            tableName: spares
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: price
+                  type: DOUBLE
+              - column:
+                  name: quantity
+                  type: INT
+        - createIndex:
+            indexName: idx_parts_name
+            tableName: spares
+            columns:
+              - column:
+                  name: name
+
+  - changeSet:
+      id: 6
+      author: yourname
+      changes:
+        - createTable:
+            tableName: repair_types
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: VARCHAR(1000)
+        - createIndex:
+            indexName: idx_repair_types_name
+            tableName: repair_types
+            columns:
+              - column:
+                  name: name
+
+  - changeSet:
+      id: 7
+      author: yourname
+      changes:
+        - createTable:
+            tableName: repairs
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: car_id
+                  type: BIGINT
+              - column:
+                  name: master_id
+                  type: BIGINT
+              - column:
+                  name: repair_type_id
+                  type: BIGINT
+              - column:
+                  name: start_date
+                  type: DATE
+              - column:
+                  name: end_date
+                  type: DATE
+              - column:
+                  name: description
+                  type: VARCHAR(255)
+        - addForeignKeyConstraint:
+            baseTableName: repairs
+            baseColumnNames: car_id
+            referencedTableName: cars
+            referencedColumnNames: car_id
+            constraintName: fk_repair_car
+        - addForeignKeyConstraint:
+            baseTableName: repairs
+            baseColumnNames: master_id
+            referencedTableName: masters
+            referencedColumnNames: id
+            constraintName: fk_repair_master
+        - addForeignKeyConstraint:
+            baseTableName: repairs
+            baseColumnNames: repair_type_id
+            referencedTableName: repair_types
+            referencedColumnNames: id
+            constraintName: fk_repair_type
+        - createIndex:
+            indexName: idx_repairs_start_date
+            tableName: repairs
+            columns:
+              - column:
+                  name: start_date
+
+  - changeSet:
+      id: 8
+      author: yourname
+      changes:
+        - createTable:
+            tableName: master_repair_types
+            columns:
+              - column:
+                  name: repair_type_id
+                  type: BIGINT
+              - column:
+                  name: master_id
+                  type: BIGINT
+        - addPrimaryKey:
+            columnNames: repair_type_id, master_id
+            tableName: master_repair_types
+        - addForeignKeyConstraint:
+            baseTableName: master_repair_types
+            baseColumnNames: repair_type_id
+            referencedTableName: repair_types
+            referencedColumnNames: id
+            constraintName: fk_master_repair_type
+        - addForeignKeyConstraint:
+            baseTableName: master_repair_types
+            baseColumnNames: master_id
+            referencedTableName: masters
+            referencedColumnNames: id
+            constraintName: fk_master_repair_master
+
+  - changeSet:
+      id: 9
+      author: yourname
+      changes:
+        - createTable:
+            tableName: spares_order
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: repair_id
+                  type: BIGINT
+              - column:
+                  name: spare_id
+                  type: BIGINT
+              - column:
+                  name: quantity
+                  type: INT
+        - addForeignKeyConstraint:
+            baseTableName: spares_order
+            baseColumnNames: repair_id
+            referencedTableName: repairs
+            referencedColumnNames: id
+            constraintName: fk_spareorder_repair
+        - addForeignKeyConstraint:
+            baseTableName: spares_order
+            baseColumnNames: spare_id
+            referencedTableName: spares
+            referencedColumnNames: id
+            constraintName: fk_spareorder_part
+        - createIndex:
+            indexName: idx_spare_orders_repair
+            tableName: spares_order
+            columns:
+              - column:
+                  name: repair_id

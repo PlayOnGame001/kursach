@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: mark-as-ran
+      author: your_name
+      changes:
+        - tagDatabase:
+            tag: baseline
+  - changeSet:
+      id: mark-existing-changesets
+      author: your_name
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO DATABASECHANGELOG (ID, AUTHOR, FILENAME, DATEEXECUTED, ORDEREXECUTED, MD5SUM, DESCRIPTION, COMMENTS, EXECTYPE, CONTEXTS, LABELS, LIQUIBASE, DEPLOYMENT_ID)
+              VALUES 
+              ('1', 'yourname', 'db/migrations/changelog-001.yaml', NOW(), 1, '8:d41d8cd98f00b204e9800998ecf8427e', 'createTable, createIndex', '', 'EXECUTED', NULL, NULL, '4.24.0', '0000000000'),
+              ('2', 'yourname', 'db/migrations/changelog-001.yaml', NOW(), 2, '8:d41d8cd98f00b204e9800998ecf8427e', 'createTable, addForeignKeyConstraint, createIndex', '', 'EXECUTED', NULL, NULL, '4.24.0', '0000000000'),
+              ('3', 'yourname', 'db/migrations/changelog-001.yaml', NOW(), 3, '8:d41d8cd98f00b204e9800998ecf8427e', 'createTable, createIndex', '', 'EXECUTED', NULL, NULL, '4.24.0', '0000000000'),
+              ('4', 'yourname', 'db/migrations/changelog-001.yaml', NOW(), 4, '8:d41d8cd98f00b204e9800998ecf8427e', 'createTable, addForeignKeyConstraint (x2)', '', 'EXECUTED', NULL, NULL, '4.24.0', '0000000000'),
+              ('5', 'yourname', 'db/migrations/changelog-001.yaml', NOW(), 5, '8:d41d8cd98f00b204e9800998ecf8427e', 'createTable, createIndex', '', 'EXECUTED', NULL, NULL, '4.24.0', '0000000000'),
+              ('6', 'yourname', 'db/migrations/changelog-001.yaml', NOW(), 6, '8:d41d8cd98f00b204e9800998ecf8427e', 'createTable, createIndex', '', 'EXECUTED', NULL, NULL, '4.24.0', '0000000000'),
+              ('7', 'yourname', 'db/migrations/changelog-001.yaml', NOW(), 7, '8:d41d8cd98f00b204e9800998ecf8427e', 'createTable, addForeignKeyConstraint (x3), createIndex', '', 'EXECUTED', NULL, NULL, '4.24.0', '0000000000'),
+              ('8', 'yourname', 'db/migrations/changelog-001.yaml', NOW(), 8, '8:d41d8cd98f00b204e9800998ecf8427e', 'createTable, addPrimaryKey, addForeignKeyConstraint (x2)', '', 'EXECUTED', NULL, NULL, '4.24.0', '0000000000'),
+              ('9', 'yourname', 'db/migrations/changelog-001.yaml', NOW(), 9, '8:d41d8cd98f00b204e9800998ecf8427e', 'createTable, addForeignKeyConstraint (x2), createIndex', '', 'EXECUTED', NULL, NULL, '4.24.0', '0000000000');

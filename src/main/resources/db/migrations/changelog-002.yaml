@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: 10
+      author: yourname
+      changes:
+        - addColumn:
+            tableName: cars
+            columns:
+              - column:
+                  name: color
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: 11
+      author: yourname
+      changes:
+        - createIndex:
+            indexName: idx_cars_color
+            tableName: cars
+            columns:
+              - column:
+                  name: color
+
+  - changeSet:
+      id: 12
+      author: yourname
+      changes:
+        - createTable:
+            tableName: service_stations
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+              - column:
+                  name: phone
+                  type: VARCHAR(50)
+        - createIndex:
+            indexName: idx_stations_name
+            tableName: service_stations
+            columns:
+              - column:
+                  name: name
+  - changeSet:
+      id: 13
+      author: yourname
+      changes:
+        - addColumn:
+            tableName: spares
+            columns:
+              - column:
+                  name: repair_type_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: spares
+            baseColumnNames: repair_type_id
+            referencedTableName: repair_types
+            referencedColumnNames: id
+            constraintName: fk_spare_repair_type
