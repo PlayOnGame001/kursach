@@ -46,4 +46,11 @@ public class ClientService {
         return problems.isEmpty() ? "Жодної проблеми не знайдено" :
                 Collections.max(problems, Comparator.comparingInt(a -> Collections.frequency(problems, a)));
     }
+
+    public Optional<Client> getClientByCarId(Long carId) {
+        return clientRepository.findAll().stream()
+                .filter(c -> c.getCar() != null && c.getCar().getId() == carId)
+                .findFirst();
+    }
+
 }

@@ -3,6 +3,7 @@ package org.station.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,8 @@ public class Repair {
     @JoinColumn(name = "car_id")
     private Car car;
 
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
 
     @ManyToOne
     @JoinColumn(name = "master_id")
@@ -40,7 +43,19 @@ public class Repair {
 
     private String description;
 
-    @OneToMany(mappedBy = "repair", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SpareOrder> spareOrders = new ArrayList<>();
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+
+    @Column(name = "finished_at")
+    private LocalDateTime finishedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    private Client client;
+
+
 
 }

@@ -6,6 +6,7 @@ import org.station.entity.*;
 import org.station.service.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import javax.swing.*;
@@ -14,6 +15,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -22,10 +24,10 @@ public class GUIInterface {
     private final ClientService clientService;
     private final MasterService masterService;
     private final SpareService spareService;
-    private final SpareOrderService spareOrderService;
     private final RepairService repairService;
     private final RepairTypeService repairTypeService;
     private final ServiceStationService serviceStationService;
+    private final CarBrandService carBrandService;
     private final Scanner scanner = new Scanner(System.in);
 
     private JFrame mainFrame;
@@ -244,8 +246,96 @@ public class GUIInterface {
             return;
         }
 
+        JPanel menuPanel = new JPanel(new GridLayout(4, 1, 10, 10));
+        menuPanel.setBorder(BorderFactory.createEmptyBorder(50, 150, 50, 150));
+
+        JLabel stationLabel = new JLabel("Поточна станція: " + currentStation.getName(), JLabel.CENTER);
+        stationLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+        JButton masterButton = new JButton("Майстер");
+        JButton repairButton = new JButton("Ремонт");
+        JButton continueButton = new JButton("Далі");
+        JButton backButton = new JButton("Повернутися до вибору станції");
+
+        masterButton.addActionListener(e -> showMasterMenu());
+        repairButton.addActionListener(e -> showRepairMenu());
+        continueButton.addActionListener(e -> showFullMainMenu());
+        backButton.addActionListener(e -> showStationSelectionScreen());
+
+        menuPanel.add(masterButton);
+        menuPanel.add(repairButton);
+        menuPanel.add(continueButton);
+        menuPanel.add(backButton);
+
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(stationLabel, BorderLayout.NORTH);
+        mainPanel.add(menuPanel, BorderLayout.CENTER);
+
+        mainFrame.getContentPane().removeAll();
+        mainFrame.add(mainPanel);
+        mainFrame.revalidate();
+        mainFrame.repaint();
+    }
+
+    private void showMasterMenu() {
+        JPanel masterPanel = new JPanel(new GridLayout(5, 1, 10, 10));
+        masterPanel.setBorder(BorderFactory.createEmptyBorder(50, 150, 50, 150));
+
+        JButton addMasterButton = new JButton("Додати майстра");
+        JButton viewMastersButton = new JButton("Переглянути майстрів");
+        JButton deleteMasterButton = new JButton("Видалити майстра");
+        JButton selectRepairButton = new JButton("Обрати ремонт");
+        JButton backButton = new JButton("Назад");
+
+        addMasterButton.addActionListener(e -> addMaster());
+        viewMastersButton.addActionListener(e -> viewAllMasters());
+        deleteMasterButton.addActionListener(e -> removeMaster());
+        selectRepairButton.addActionListener(e -> handleRepairsInterface());
+        backButton.addActionListener(e -> showMainMenu());
+
+        masterPanel.add(addMasterButton);
+        masterPanel.add(viewMastersButton);
+        masterPanel.add(deleteMasterButton);
+        masterPanel.add(selectRepairButton);
+        masterPanel.add(backButton);
+
+        switchPanel(masterPanel);
+    }
+
+    private void showRepairMenu() {
+        JPanel repairPanel = new JPanel(new GridLayout(6, 1, 10, 10));
+        repairPanel.setBorder(BorderFactory.createEmptyBorder(50, 150, 50, 150));
+
+        JButton viewRepairsButton = new JButton("Переглянути ремонти");
+        //JButton addRepairButton = new JButton("Додати ремонт");
+        JButton historyButton = new JButton("Список ремонтів");
+        JButton deleteRepairButton = new JButton("Видалити ремонт");
+        JButton requestRepairButton = new JButton("Створити заявку на ремонт");
+        JButton viewPartsButton = new JButton("Переглянути запчастини");
+        JButton backButton = new JButton("Назад");
+
+        viewRepairsButton.addActionListener(e -> listRepairs());
+        //addRepairButton.addActionListener(e -> addRepair());
+        historyButton.addActionListener(e -> showFullRepairHistory());
+        deleteRepairButton.addActionListener(e -> removeRepair());
+        requestRepairButton.addActionListener(e -> addRepair()); // можно создать отдельный метод
+        viewPartsButton.addActionListener(e -> listSpare());
+        backButton.addActionListener(e -> showMainMenu());
+
+        repairPanel.add(viewRepairsButton);
+        //repairPanel.add(addRepairButton);
+        repairPanel.add(historyButton);
+        repairPanel.add(deleteRepairButton);
+        repairPanel.add(requestRepairButton);
+        repairPanel.add(viewPartsButton);
+        repairPanel.add(backButton);
+
+        switchPanel(repairPanel);
+    }
+
+    private void showFullMainMenu() {
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(6, 1, 10, 10)); // 6 кнопок вместо 5
+        panel.setLayout(new GridLayout(6, 1, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(50, 150, 50, 150));
 
         JLabel stationLabel = new JLabel("Поточна станція: " + currentStation.getName(), JLabel.CENTER);
@@ -265,8 +355,6 @@ public class GUIInterface {
         backButton.addActionListener(e -> showStationSelectionScreen());
         exitButton.addActionListener(e -> System.exit(0));
 
-        // Добавляем заголовок в верхней части панели
-        mainFrame.getContentPane().removeAll();
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(stationLabel, BorderLayout.NORTH);
         mainPanel.add(panel, BorderLayout.CENTER);
@@ -278,41 +366,34 @@ public class GUIInterface {
         panel.add(backButton);
         panel.add(exitButton);
 
+        mainFrame.getContentPane().removeAll();
         mainFrame.add(mainPanel);
         mainFrame.revalidate();
         mainFrame.repaint();
     }
+
 
     private void showAddMenu() {
         JPanel addPanel = new JPanel();
         addPanel.setLayout(new GridLayout(9, 1, 10, 10)); // Увеличено количество строк на 1
         addPanel.setBorder(BorderFactory.createEmptyBorder(50, 150, 50, 150));
 
-        JButton addMasterButton = new JButton("Додати майстра");
-        JButton addClientButton = new JButton("Додати клієнта");
-        JButton addCarButton = new JButton("Додати авто");
+        //JButton addMasterButton = new JButton("Додати майстра");
         JButton addPartButton = new JButton("Замовити запчастину");
-        JButton addPartOrderButton = new JButton("Додати замовлення на запчастину");
-        JButton addRepairButton = new JButton("Додати ремонт");
+        //JButton addRepairButton = new JButton("Додати ремонт");
         JButton addRepairTypeButton = new JButton("Додати тип ремонту");
         JButton backButton = new JButton("Повернутися до головного меню");
 
 
-        addMasterButton.addActionListener(e -> addMaster());
-        addClientButton.addActionListener(e -> addClient());
-        addCarButton.addActionListener(e -> addCar());
+        //addMasterButton.addActionListener(e -> addMaster());
         addPartButton.addActionListener(e -> addSpare());
-        addPartOrderButton.addActionListener(e -> addSpareOrder());
-        addRepairButton.addActionListener(e -> addRepair());
+        //addRepairButton.addActionListener(e -> addRepair());
         addRepairTypeButton.addActionListener(e -> addRepairType());
         backButton.addActionListener(e -> showMainMenu());
 
-        addPanel.add(addMasterButton);
-        addPanel.add(addClientButton);
-        addPanel.add(addCarButton);
+        //addPanel.add(addMasterButton);
         addPanel.add(addPartButton);
-        addPanel.add(addPartOrderButton);
-        addPanel.add(addRepairButton);
+        //addPanel.add(addRepairButton);
         addPanel.add(addRepairTypeButton);
         addPanel.add(backButton);
 
@@ -324,31 +405,30 @@ public class GUIInterface {
         removePanel.setLayout(new GridLayout(10, 1, 10, 10)); // Оставляем 10 строк
         removePanel.setBorder(BorderFactory.createEmptyBorder(50, 150, 50, 150));
 
-        JButton removeMasterButton = new JButton("Видалити майстра");
+        //JButton removeMasterButton = new JButton("Видалити майстра");
         JButton removeClientButton = new JButton("Видалити клієнта");
         JButton removeCarButton = new JButton("Видалити авто");
         JButton removePartButton = new JButton("Видалити запчастину");
-        JButton removeRepairButton = new JButton("Видалити ремонт");
+        //JButton removeRepairButton = new JButton("Видалити ремонт");
         JButton removeRepairTypeButton = new JButton("Видалити тип ремонту");
         JButton removeUserButton = new JButton("Видалити користувача");
         JButton removePartOrderButton = new JButton("Видалити замовлення запчастини");
 
         JButton backButton = new JButton("Повернутися до головного меню");
 
-        removeMasterButton.addActionListener(e -> removeMaster());
+        //removeMasterButton.addActionListener(e -> removeMaster());
         removeClientButton.addActionListener(e -> removeClient());
         removeCarButton.addActionListener(e -> removeCar());
         removePartButton.addActionListener(e -> removeSpare());
-        removeRepairButton.addActionListener(e -> removeRepair());
+        //removeRepairButton.addActionListener(e -> removeRepair());
         removeRepairTypeButton.addActionListener(e -> removeRepairType());
-        removePartOrderButton.addActionListener(e -> removeSpareOrder());
         backButton.addActionListener(e -> showMainMenu());
 
-        removePanel.add(removeMasterButton);
+        //removePanel.add(removeMasterButton);
         removePanel.add(removeClientButton);
         removePanel.add(removeCarButton);
         removePanel.add(removePartButton);
-        removePanel.add(removeRepairButton);
+        //removePanel.add(removeRepairButton);
         removePanel.add(removeRepairTypeButton);
         removePanel.add(removeUserButton);
         removePanel.add(removePartOrderButton);
@@ -362,29 +442,29 @@ public class GUIInterface {
         viewPanel.setLayout(new GridLayout(9, 1, 10, 10));
         viewPanel.setBorder(BorderFactory.createEmptyBorder(50, 150, 50, 150));
 
-        JButton viewMastersButton = new JButton("Переглянути майстрів");
+        //JButton viewMastersButton = new JButton("Переглянути майстрів");
         JButton viewClientsButton = new JButton("Переглянути клієнтів");
         JButton viewCarsButton = new JButton("Переглянути авто");
         JButton viewPartsButton = new JButton("Переглянути запчастини");
-        JButton viewPartOrdersButton = new JButton("Переглянути замовлення на запчастини");
+        //JButton manageRepairsButton = new JButton("Обробити ремонти");
         JButton viewRepairsButton = new JButton("Переглянути ремонти");
         JButton viewRepairTypesButton = new JButton("Переглянути типи ремонту");
         JButton backButton = new JButton("Повернутися до головного меню");
 
-        viewMastersButton.addActionListener(e -> viewAllMasters());
+        //viewMastersButton.addActionListener(e -> viewAllMasters());
         viewClientsButton.addActionListener(e -> viewAllClients());
         viewCarsButton.addActionListener(e -> viewAllCars());
         viewPartsButton.addActionListener(e -> listSpare());
-        viewPartOrdersButton.addActionListener(e -> listSpareOrder());
+        //manageRepairsButton.addActionListener(e -> handleRepairsInterface());
         viewRepairsButton.addActionListener(e -> listRepairs());
         viewRepairTypesButton.addActionListener(e -> listRepairTypes());
         backButton.addActionListener(e -> showMainMenu()); // Изменено на showMainMenu
 
-        viewPanel.add(viewMastersButton);
+        //viewPanel.add(viewMastersButton);
         viewPanel.add(viewClientsButton);
         viewPanel.add(viewCarsButton);
         viewPanel.add(viewPartsButton);
-        viewPanel.add(viewPartOrdersButton);
+        //viewPanel.add(manageRepairsButton);
         viewPanel.add(viewRepairsButton);
         viewPanel.add(viewRepairTypesButton);
         viewPanel.add(backButton);
@@ -411,7 +491,7 @@ public class GUIInterface {
         findClientsByBrandButton.addActionListener(e -> findClientsByCarBrand());
         commonProblemButton.addActionListener(e -> showCommonProblem());
         numberOfClientsButton.addActionListener(e -> showNumberOfClients());
-        backButton.addActionListener(e -> showMainMenu()); // Изменено на showMainMenu
+        backButton.addActionListener(e -> showMainMenu());
 
         otherOperationsPanel.add(avgRepairButton);
         otherOperationsPanel.add(findClientsButton);
@@ -476,7 +556,6 @@ public class GUIInterface {
                 return;
             }
 
-            // Используем название текущей выбранной станции
             Master master = new Master(currentStation.getName(), fullName, phoneNumber, address, specialization);
             masterService.addMaster(master);
             JOptionPane.showMessageDialog(mainFrame, "Майстра додано!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
@@ -484,116 +563,37 @@ public class GUIInterface {
         }
     }
 
-    private void addClient() {
-        if (currentStation == null) {
-            JOptionPane.showMessageDialog(mainFrame, "Спочатку виберіть сервісну станцію.", "Попередження", JOptionPane.WARNING_MESSAGE);
+    private void handleRepairsInterface() {
+        List<Repair> pendingRepairs = repairService.getAllRepairs().stream()
+                .filter(r -> !"COMPLETED".equalsIgnoreCase(r.getStatus()))
+                .collect(Collectors.toList());
+
+        if (pendingRepairs.isEmpty()) {
+            JOptionPane.showMessageDialog(mainFrame, "Немає активних ремонтів для обробки.", "Ремонти", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10)); // Уменьшили до 4 строк
+        String[] repairOptions = pendingRepairs.stream()
+                .map(r -> "ID: " + r.getId() + " | " +
+                        "Клієнт: " + (r.getClient() != null ? r.getClient().getFullName() : "Невідомо") +
+                        ", Машина: " + (r.getCar() != null ? r.getCar().getBrand() : "Невідомо") +
+                        ", Тип: " + (r.getRepairType() != null ? r.getRepairType().getName() : "Невідомо") +
+                        ", Майстер: " + (r.getMaster() != null ? r.getMaster().getFullName() : "Невідомо") +
+                        ", Статус: " + r.getStatus())
+                .toArray(String[]::new);
 
-        JTextField fullNameField = new JTextField();
-        JTextField phoneNumberField = new JTextField();
-        JTextField problemField = new JTextField();
-        JTextField carIdField = new JTextField();
+        JComboBox<String> repairBox = new JComboBox<>(repairOptions);
+        Object[] options = {"Прийняти", "Завершити", "Відхилити", "Вихід"};
+        int action = JOptionPane.showOptionDialog(mainFrame, repairBox, "Обробка ремонтів", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 
-        panel.add(new JLabel("Ім'я клієнта:"));
-        panel.add(fullNameField);
-        panel.add(new JLabel("Номер телефону:"));
-        panel.add(phoneNumberField);
-        panel.add(new JLabel("Опис проблеми:"));
-        panel.add(problemField);
-        panel.add(new JLabel("ID Авто:"));
-        panel.add(carIdField);
-
-        int result = JOptionPane.showConfirmDialog(mainFrame, panel, "Додати Клієнта", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (result == JOptionPane.OK_OPTION) {
-            String fullName = fullNameField.getText().trim();
-            String phoneNumber = phoneNumberField.getText().trim();
-            String problem = problemField.getText().trim();
-            String carIdStr = carIdField.getText().trim();
-
-            // Валідація вводу
-            if (fullName.isEmpty() || phoneNumber.isEmpty() || problem.isEmpty() || carIdStr.isEmpty()) {
-                JOptionPane.showMessageDialog(mainFrame, "Всі поля повинні бути заповнені.", "Помилка", JOptionPane.ERROR_MESSAGE);
-                return;
+        if (action >= 0 && action <= 2) {
+            Long repairId = pendingRepairs.get(repairBox.getSelectedIndex()).getId();
+            switch (action) {
+                case 0 -> repairService.acceptRepair(repairId, LocalDateTime.now());
+                case 1 -> repairService.completeRepair(repairId, LocalDateTime.now());
+                case 2 -> repairService.rejectRepair(repairId);
             }
-
-            if (!Pattern.matches("\\d{10}", phoneNumber)) {
-                JOptionPane.showMessageDialog(mainFrame, "Невірний формат номера телефону. Використовуйте тільки цифри (10 цифр).", "Помилка", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            long carId;
-            try {
-                carId = Long.parseLong(carIdStr);
-                if (carId <= 0) throw new NumberFormatException();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(mainFrame, "ID Авто повинен бути позитивним числом.", "Помилка", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            Optional<Car> carOpt = carService.getCarById(carId);
-            if (carOpt.isEmpty()) {
-                JOptionPane.showMessageDialog(mainFrame, "Такого авто не існує.", "Помилка", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            Client client = new Client(problem, phoneNumber, currentStation.getName(), fullName, carOpt.get());
-            clientService.addClient(client);
-            JOptionPane.showMessageDialog(mainFrame, "Клієнта додано!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
-            showMainMenu();
-        }
-    }
-
-    private void addCar() {
-        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
-
-        JTextField brandField = new JTextField();
-        JTextField releaseYearField = new JTextField();
-        JTextField priceField = new JTextField();
-        JTextField repairDurationField = new JTextField();
-
-        panel.add(new JLabel("Марка авто:"));
-        panel.add(brandField);
-        panel.add(new JLabel("Рік випуску:"));
-        panel.add(releaseYearField);
-        panel.add(new JLabel("Ціна авто:"));
-        panel.add(priceField);
-        panel.add(new JLabel("Тривалість ремонту (у днях):"));
-        panel.add(repairDurationField);
-
-        int result = JOptionPane.showConfirmDialog(mainFrame, panel, "Додати Авто", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (result == JOptionPane.OK_OPTION) {
-            String brand = brandField.getText().trim();
-            String releaseYearStr = releaseYearField.getText().trim();
-            String priceStr = priceField.getText().trim();
-            String repairDurationStr = repairDurationField.getText().trim();
-
-            // Валідація вводу
-            if (brand.isEmpty() || releaseYearStr.isEmpty() || priceStr.isEmpty() || repairDurationStr.isEmpty()) {
-                JOptionPane.showMessageDialog(mainFrame, "Всі поля повинні бути заповнені.", "Помилка", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            int releaseYear;
-            double price;
-            int repairDuration;
-            try {
-                releaseYear = Integer.parseInt(releaseYearStr);
-                price = Double.parseDouble(priceStr);
-                repairDuration = Integer.parseInt(repairDurationStr);
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(mainFrame, "Рік випуску, ціна та тривалість ремонту повинні бути числами.", "Помилка", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            Car car = new Car(brand, releaseYear, price, repairDuration);
-            carService.addCar(car);
-            JOptionPane.showMessageDialog(mainFrame, "Авто додано!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
-            backToMainMenu();
+            JOptionPane.showMessageDialog(mainFrame, "Операція виконана!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
@@ -884,7 +884,7 @@ public class GUIInterface {
         JComboBox<String> spareBox = new JComboBox<>(options);
         JTextField quantityField = new JTextField();
         JTextField nameField = new JTextField();
-        JLabel availableLabel = new JLabel("Доступно: -");
+        JLabel availableLabel = new JLabel("Доступно у наявності: -");
 
         JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
         panel.add(new JLabel("Оберіть запчастину:"));
@@ -952,12 +952,31 @@ public class GUIInterface {
     }
 
     private void listSpare() {
-        System.out.println("Список запчастин:");
-        spareService.getAllParts().forEach(spare ->
-                System.out.println("ID: " + spare.getId() +
-                        ", Назва: " + spare.getName() +
-                        ", Кількість: " + spare.getQuantity()));
+        List<Spare> spares = spareService.getAllParts();
+
+        if (spares.isEmpty()) {
+            JOptionPane.showMessageDialog(mainFrame, "Запчастин не знайдено.", "Перегляд Запчастин", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            String[] columnNames = {"ID", "Назва", "Кількість"};
+            Object[][] data = new Object[spares.size()][3];
+
+            for (int i = 0; i < spares.size(); i++) {
+                Spare spare = spares.get(i);
+                data[i][0] = spare.getId();
+                data[i][1] = spare.getName();
+                data[i][2] = spare.getQuantity();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            table.setFillsViewportHeight(true);
+
+            JOptionPane.showMessageDialog(mainFrame, scrollPane, "Перегляд Запчастин", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        backToMainMenu();
     }
+
 
     private void removeSpare() {
         String idStr = JOptionPane.showInputDialog(mainFrame, "Введіть ID запчастини:", "Видалити Запчастину", JOptionPane.PLAIN_MESSAGE);
@@ -979,216 +998,204 @@ public class GUIInterface {
         }
     }
 
-
-
-    // ===== Методы GUI для Замовлень на Запчастини (SpareOrder) =====
-    private void addSpareOrder() {
-        List<Repair> repairs = repairService.getAllRepairs();
-        List<Spare> spares = spareService.getAllParts();
-
-        if (repairs.isEmpty() || spares.isEmpty()) {
-            JOptionPane.showMessageDialog(mainFrame, "Немає доступних ремонтів або запчастин.", "Помилка", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        JComboBox<String> repairBox = new JComboBox<>(
-                repairs.stream().map(r -> r.getId() + " - " + r.getDescription()).toArray(String[]::new)
-        );
-
-        JComboBox<String> spareBox = new JComboBox<>(
-                spares.stream().map(s -> s.getId() + " | " + s.getName() + " (в наявності: " + s.getQuantity() + ")").toArray(String[]::new)
-        );
-
-        JTextField quantityField = new JTextField();
-
-        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
-        panel.add(new JLabel("Оберіть ремонт:"));
-        panel.add(repairBox);
-        panel.add(new JLabel("Оберіть запчастину:"));
-        panel.add(spareBox);
-        panel.add(new JLabel("Кількість:"));
-        panel.add(quantityField);
-
-        int result = JOptionPane.showConfirmDialog(mainFrame, panel, "Замовлення запчастини", JOptionPane.OK_CANCEL_OPTION);
-
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                Long repairId = Long.parseLong(((String) repairBox.getSelectedItem()).split(" - ")[0]);
-                Long spareId = Long.parseLong(((String) spareBox.getSelectedItem()).split(" \\| ")[0]);
-                int quantity = Integer.parseInt(quantityField.getText().trim());
-
-                Spare spare = spareService.getPartById(spareId).orElse(null);
-                Repair repair = repairService.getRepairById(repairId).orElse(null);
-
-                if (spare == null || repair == null) {
-                    JOptionPane.showMessageDialog(mainFrame, "Невірний вибір!", "Помилка", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                if (quantity < 1 || quantity > spare.getQuantity()) {
-                    JOptionPane.showMessageDialog(mainFrame, "Кількість має бути від 1 до " + spare.getQuantity(), "Помилка", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                SpareOrder order = new SpareOrder();
-                order.setRepair(repair);
-                order.setSpare(spare);
-                order.setQuantity(quantity);
-
-                // Обновляем кількість на складі
-                spare.setQuantity(spare.getQuantity() - quantity);
-                spareService.updatePart(spare);
-                spareOrderService.addPartOrder(order);
-
-                JOptionPane.showMessageDialog(mainFrame, "Замовлення оформлено!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(mainFrame, "Помилка: " + e.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    private void listSpareOrder() {
-        System.out.println("Список замовлень на запчастини:");
-        spareOrderService.getAllPartOrders().forEach(order -> {
-            String partName = order.getSpare() != null ? order.getSpare().getName() : "Невідомо";
-            Long repairId = order.getRepair() != null ? order.getRepair().getId() : null;
-
-            System.out.println("ID: " + order.getId() +
-                    ", Запчастина: " + partName +
-                    ", Кількість: " + order.getQuantity() +
-                    ", Ремонт ID: " + repairId);
-        });
-    }
-
-    private void removeSpareOrder() {
-        String idStr = JOptionPane.showInputDialog(mainFrame, "Введіть ID замовлення:", "Видалити Замовлення", JOptionPane.PLAIN_MESSAGE);
-        if (idStr != null) {
-            try {
-                long id = Long.parseLong(idStr);
-                if (id <= 0) throw new NumberFormatException();
-
-                boolean removed = spareOrderService.removePartOrder(id);
-                if (removed) {
-                    JOptionPane.showMessageDialog(mainFrame, "Замовлення видалено.", "Успіх", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(mainFrame, "Замовлення не знайдено.", "Помилка", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(mainFrame, "ID повинен бути позитивним числом.", "Помилка", JOptionPane.ERROR_MESSAGE);
-            }
-            backToMainMenu();
-        }
-    }
-
     // ===== Методы GUI для Ремонтів (Repair) =====
     private void addRepair() {
-        List<Car> cars = carService.getAllCars();
+        JTextField fullNameField = new JTextField();
+        JTextField phoneField = new JTextField();
+        JTextField problemField = new JTextField();
+
+        JPanel clientPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        clientPanel.add(new JLabel("Ім'я клієнта:"));
+        clientPanel.add(fullNameField);
+        clientPanel.add(new JLabel("Телефон:"));
+        clientPanel.add(phoneField);
+        clientPanel.add(new JLabel("Проблема:"));
+        clientPanel.add(problemField);
+
+        int clientResult = JOptionPane.showConfirmDialog(mainFrame, clientPanel, "Крок 1: Дані клієнта", JOptionPane.OK_CANCEL_OPTION);
+        if (clientResult != JOptionPane.OK_OPTION) return;
+
+        List<CarBrand> brands = carBrandService.getAllBrands();
+        String[] brandNames = brands.stream().map(CarBrand::getName).toArray(String[]::new);
+        JComboBox<String> brandBox = new JComboBox<>(brandNames);
+        JTextField yearField = new JTextField();
+        JTextField durationField = new JTextField();
+
+        JPanel carPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        carPanel.add(new JLabel("Марка авто:"));
+        carPanel.add(brandBox);
+        carPanel.add(new JLabel("Рік випуску:"));
+        carPanel.add(yearField);
+        carPanel.add(new JLabel("Тривалість ремонту:"));
+        carPanel.add(durationField);
+
+        int carResult = JOptionPane.showConfirmDialog(mainFrame, carPanel, "Крок 2: Дані авто", JOptionPane.OK_CANCEL_OPTION);
+        if (carResult != JOptionPane.OK_OPTION) return;
+
         List<Master> masters = masterService.getAllMasters();
-        List<RepairType> repairTypes = repairTypeService.getAllRepairTypes();
+        List<RepairType> types = repairTypeService.getAllRepairTypes();
+        String[] masterOptions = masters.stream().map(m -> m.getId() + " - " + m.getFullName()).toArray(String[]::new);
+        String[] typeOptions = types.stream().map(t -> t.getId() + " - " + t.getName()).toArray(String[]::new);
 
-        if (cars.isEmpty() || masters.isEmpty() || repairTypes.isEmpty()) {
-            JOptionPane.showMessageDialog(mainFrame,
-                    "Немає доступних авто, майстрів або типів ремонту.",
-                    "Помилка", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        String[] carOptions = cars.stream()
-                .map(car -> car.getId() + " | " + car.getBrand() + " (" + car.getReleaseYear() + ")")
-                .toArray(String[]::new);
-
-        String[] masterOptions = masters.stream()
-                .map(master -> master.getId() + " | " + master.getFullName() + " (" + master.getSpecialization() + ")")
-                .toArray(String[]::new);
-
-        String[] typeOptions = repairTypes.stream()
-                .map(type -> type.getId() + " | " + type.getName())
-                .toArray(String[]::new);
-
-        JComboBox<String> carBox = new JComboBox<>(carOptions);
         JComboBox<String> masterBox = new JComboBox<>(masterOptions);
         JComboBox<String> typeBox = new JComboBox<>(typeOptions);
         JTextField descField = new JTextField();
 
-        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
-        panel.add(new JLabel("Виберіть авто:"));
-        panel.add(carBox);
-        panel.add(new JLabel("Виберіть майстра:"));
-        panel.add(masterBox);
-        panel.add(new JLabel("Тип ремонту:"));
-        panel.add(typeBox);
-        panel.add(new JLabel("Опис:"));
-        panel.add(descField);
+        JPanel confirmPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+        confirmPanel.add(new JLabel("Майстер:"));
+        confirmPanel.add(masterBox);
+        confirmPanel.add(new JLabel("Тип ремонту:"));
+        confirmPanel.add(typeBox);
+        confirmPanel.add(new JLabel("Опис:"));
+        confirmPanel.add(descField);
 
-        int result = JOptionPane.showConfirmDialog(mainFrame, panel, "Додати ремонт", JOptionPane.OK_CANCEL_OPTION);
+        int confirmResult = JOptionPane.showConfirmDialog(mainFrame, confirmPanel, "Крок 3: Підтвердження", JOptionPane.OK_CANCEL_OPTION);
+        if (confirmResult != JOptionPane.OK_OPTION) return;
 
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                Long carId = Long.parseLong(((String) carBox.getSelectedItem()).split(" \\| ")[0]);
-                Long masterId = Long.parseLong(((String) masterBox.getSelectedItem()).split(" \\| ")[0]);
-                Long repairTypeId = Long.parseLong(((String) typeBox.getSelectedItem()).split(" \\| ")[0]);
-                String description = descField.getText().trim();
+        Car car = new Car((String) brandBox.getSelectedItem(),
+                Integer.parseInt(yearField.getText().trim()),
+                0.0,
+                Integer.parseInt(durationField.getText().trim()));
+        carService.addCar(car);
 
-                Optional<Car> carOpt = carService.getCarById(carId);
-                Optional<Master> masterOpt = masterService.getMasterById(masterId);
-                Optional<RepairType> repairTypeOpt = repairTypeService.getRepairTypeById(repairTypeId);
+        Client client = new Client(problemField.getText().trim(),
+                phoneField.getText().trim(),
+                currentStation.getName(),
+                fullNameField.getText().trim(),
+                car);
+        clientService.addClient(client);
 
-                if (carOpt.isPresent() && masterOpt.isPresent() && repairTypeOpt.isPresent()) {
-                    Repair repair = new Repair();
-                    repair.setCar(carOpt.get());
-                    repair.setMaster(masterOpt.get());
-                    repair.setRepairType(repairTypeOpt.get());
-                    repair.setStartDate(LocalDate.now());
-                    repair.setEndDate(LocalDate.now().plusDays(3));
-                    repair.setDescription(description);
+        Long masterId = Long.parseLong(((String) masterBox.getSelectedItem()).split(" - ")[0]);
+        Long typeId = Long.parseLong(((String) typeBox.getSelectedItem()).split(" - ")[0]);
 
-                    repairService.addRepair(repair);
+        Repair repair = new Repair();
+        repair.setCar(car);
+        repair.setMaster(masterService.getMasterById(masterId).orElseThrow());
+        repair.setRepairType(repairTypeService.getRepairTypeById(typeId).orElseThrow());
+        repair.setStartDate(LocalDate.now());
+        repair.setEndDate(LocalDate.now().plusDays(3));
+        repair.setDescription(descField.getText().trim());
 
-                    JOptionPane.showMessageDialog(mainFrame, "Ремонт успішно додано!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(mainFrame, "Помилка при отриманні об'єктів з бази.", "Помилка", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(mainFrame, "Помилка: " + ex.getMessage(), "Помилка", JOptionPane.ERROR_MESSAGE);
+        repairService.addRepair(repair);
+
+        List<Spare> availableSpares = spareService.getAllParts();
+        boolean noAvailableSpare = availableSpares.stream().noneMatch(s -> s.getQuantity() > 0);
+
+        if (noAvailableSpare) {
+            int choice = JOptionPane.showOptionDialog(mainFrame,
+                    "Немає доступних запчастин.\nБажаєте скасувати ремонт чи додати запчастини?",
+                    "Увага",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE,
+                    null,
+                    new Object[]{"Скасувати ремонт", "Додати запчастини"},
+                    "Додати запчастини");
+
+            if (choice == JOptionPane.YES_OPTION) {
+                repairService.removeRepair(repair.getId());
+                carService.removeCar(car.getId());
+                clientService.removeClient(client.getId());
+                JOptionPane.showMessageDialog(mainFrame, "Ремонт скасовано.", "Інформація", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                addSpare();
             }
+        } else {
+            JOptionPane.showMessageDialog(mainFrame, "Ремонт успішно створено!", "Успіх", JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
+    private void showFullRepairHistory() {
+        List<Repair> repairs = repairService.getAllRepairs();
+
+        if (repairs.isEmpty()) {
+            JOptionPane.showMessageDialog(mainFrame, "Ремонтів не знайдено.", "Список Ремонтів", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        String[] columnNames = {
+                "ID", "Майстер", "Клієнт", "Автомобіль", "Тип", "Початок", "Кінець", "Статус", "Опис"
+        };
+
+        Object[][] data = new Object[repairs.size()][columnNames.length];
+
+        for (int i = 0; i < repairs.size(); i++) {
+            Repair repair = repairs.get(i);
+            Master master = repair.getMaster();
+            Car car = repair.getCar();
+            Client client = clientService.getClientByCarId(car.getId()).orElse(null);
+
+            data[i][0] = repair.getId();
+            data[i][1] = master != null ? master.getFullName() : "Невідомо";
+            data[i][2] = client != null ? client.getFullName() : "Невідомо";
+            data[i][3] = car != null ? car.getBrand() + " (" + car.getReleaseYear() + ")" : "Невідомо";
+            data[i][4] = repair.getRepairType() != null ? repair.getRepairType().getName() : "Невідомо";
+            data[i][5] = repair.getStartDate() != null ? repair.getStartDate().toString() : "-";
+            data[i][6] = repair.getEndDate() != null ? repair.getEndDate().toString() : "-";
+            data[i][7] = repair.getStatus();
+            data[i][8] = repair.getDescription();
+        }
+
+        JTable table = new JTable(data, columnNames);
+        JScrollPane scrollPane = new JScrollPane(table);
+        table.setFillsViewportHeight(true);
+
+        JOptionPane.showMessageDialog(mainFrame, scrollPane, "Історія ремонтів", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+
     private void listRepairs() {
-        System.out.println("Список ремонтів:");
-        repairService.getAllRepairs().forEach(repair -> {
-            String carInfo = repair.getCar() != null ? "ID " + repair.getCar().getId() : "Невідомо";
-            String masterInfo = repair.getMaster() != null ? repair.getMaster().getFullName() : "Невідомо";
-            String typeInfo = repair.getRepairType() != null ? repair.getRepairType().getName() : "Невідомо";
+        List<Repair> repairs = repairService.getAllRepairs();
 
-            System.out.println("ID: " + repair.getId() +
-                    ", Авто: " + carInfo +
-                    ", Майстер: " + masterInfo +
-                    ", Тип: " + typeInfo +
-                    ", Початок: " + repair.getStartDate() +
-                    ", Кінець: " + repair.getEndDate() +
-                    ", Опис: " + repair.getDescription());
+        if (repairs.isEmpty()) {
+            JOptionPane.showMessageDialog(mainFrame, "Ремонтів не знайдено.", "Перегляд Ремонтів", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            String[] columnNames = {"ID", "Авто", "Майстер", "Тип", "Початок", "Кінець", "Опис", "Запчастини"};
+            Object[][] data = new Object[repairs.size()][8];
 
-            List<SpareOrder> orders = spareOrderService.getOrdersByRepairId(repair.getId());
-            if (!orders.isEmpty()) {
-                System.out.println("  Замовлені запчастини:");
-                orders.forEach(order -> {
-                    System.out.println("    - " + order.getSpare().getName() +
-                            ", Кількість: " + order.getQuantity() +
-                            ", Загальна вартість: " + order.getTotalPrice() + " грн");
-                });
+            for (int i = 0; i < repairs.size(); i++) {
+                Repair repair = repairs.get(i);
+
+                String carInfo = repair.getCar() != null ? "ID " + repair.getCar().getId() : "Невідомо";
+                String masterInfo = repair.getMaster() != null ? repair.getMaster().getFullName() : "Невідомо";
+                String typeInfo = repair.getRepairType() != null ? repair.getRepairType().getName() : "Невідомо";
+                String startDate = repair.getStartDate() != null ? repair.getStartDate().toString() : "-";
+                String endDate = repair.getEndDate() != null ? repair.getEndDate().toString() : "-";
+                String description = repair.getDescription() != null ? repair.getDescription() : "-";
+
+                StringBuilder spareList = new StringBuilder();
+                if (repair.getRepairType() != null && repair.getRepairType().getSpares() != null) {
+                    repair.getRepairType().getSpares().forEach(spare -> {
+                        spareList.append(spare.getName()).append(" (x").append(spare.getQuantity()).append("), ");
+                    });
+                    if (spareList.length() > 0) {
+                        spareList.setLength(spareList.length() - 2);
+                    } else {
+                        spareList.append("Немає");
+                    }
+                } else {
+                    spareList.append("Немає");
+                }
+
+                data[i][0] = repair.getId();
+                data[i][1] = carInfo;
+                data[i][2] = masterInfo;
+                data[i][3] = typeInfo;
+                data[i][4] = startDate;
+                data[i][5] = endDate;
+                data[i][6] = description;
+                data[i][7] = spareList.toString();
             }
-        });
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            table.setFillsViewportHeight(true);
+
+            JOptionPane.showMessageDialog(mainFrame, scrollPane, "Перегляд Ремонтів", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        backToMainMenu();
     }
 
-
-    private void getRepairById(Long id) {
-        Optional<Repair> repair = repairService.getRepairById(id);
-        repair.ifPresentOrElse(
-                System.out::println,
-                () -> System.out.println("Ремонт з ID " + id + " не знайдено")
-        );
-    }
 
     private void removeRepair() {
         String idStr = JOptionPane.showInputDialog(mainFrame, "Введіть ID ремонту для видалення:", "Видалити Ремонт", JOptionPane.PLAIN_MESSAGE);
@@ -1244,13 +1251,31 @@ public class GUIInterface {
 
 
     private void listRepairTypes() {
-        System.out.println("Список типів ремонту:");
-        repairTypeService.getAllRepairTypes().forEach(rt -> {
-            System.out.println("ID: " + rt.getId() +
-                    ", Назва: " + rt.getName() +
-                    ", Опис: " + rt.getDescription());
-        });
+        List<RepairType> repairTypes = repairTypeService.getAllRepairTypes();
+
+        if (repairTypes.isEmpty()) {
+            JOptionPane.showMessageDialog(mainFrame, "Типів ремонту не знайдено.", "Перегляд Типів Ремонту", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            String[] columnNames = {"ID", "Назва", "Опис"};
+            Object[][] data = new Object[repairTypes.size()][3];
+
+            for (int i = 0; i < repairTypes.size(); i++) {
+                RepairType type = repairTypes.get(i);
+                data[i][0] = type.getId();
+                data[i][1] = type.getName();
+                data[i][2] = type.getDescription();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            table.setFillsViewportHeight(true);
+
+            JOptionPane.showMessageDialog(mainFrame, scrollPane, "Перегляд Типів Ремонту", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        backToMainMenu();
     }
+
 
     private void getRepairTypeById(Long id) {
         Optional<RepairType> repairType = repairTypeService.getRepairTypeById(id);

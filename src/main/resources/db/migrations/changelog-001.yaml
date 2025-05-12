@@ -1,7 +1,8 @@
 databaseChangeLog:
+
   - changeSet:
       id: 1
-      author: yourname
+      author: sryosz
       changes:
         - createTable:
             tableName: cars
@@ -34,7 +35,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 2
-      author: yourname
+      author: sryosz
       changes:
         - createTable:
             tableName: clients
@@ -74,7 +75,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 3
-      author: yourname
+      author: sryosz
       changes:
         - createTable:
             tableName: masters
@@ -107,45 +108,8 @@ databaseChangeLog:
                   name: phone_number
 
   - changeSet:
-      id: 4
-      author: yourname
-      changes:
-        - createTable:
-            tableName: complaints
-            columns:
-              - column:
-                  name: id
-                  type: BIGINT AUTO_INCREMENT
-                  constraints:
-                    primaryKey: true
-              - column:
-                  name: content
-                  type: VARCHAR(1000)
-              - column:
-                  name: client_id
-                  type: BIGINT
-              - column:
-                  name: master_id
-                  type: BIGINT
-              - column:
-                  name: status
-                  type: VARCHAR(100)
-        - addForeignKeyConstraint:
-            baseTableName: complaints
-            baseColumnNames: client_id
-            referencedTableName: clients
-            referencedColumnNames: id
-            constraintName: fk_complaint_client
-        - addForeignKeyConstraint:
-            baseTableName: complaints
-            baseColumnNames: master_id
-            referencedTableName: masters
-            referencedColumnNames: id
-            constraintName: fk_complaint_master
-
-  - changeSet:
       id: 5
-      author: yourname
+      author: sryosz
       changes:
         - createTable:
             tableName: spares
@@ -173,7 +137,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 6
-      author: yourname
+      author: sryosz
       changes:
         - createTable:
             tableName: repair_types
@@ -198,7 +162,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 7
-      author: yourname
+      author: sryosz
       changes:
         - createTable:
             tableName: repairs
@@ -253,10 +217,10 @@ databaseChangeLog:
 
   - changeSet:
       id: 8
-      author: yourname
+      author: sryosz
       changes:
         - createTable:
-            tableName: master_repair_types
+            tableName: master_repair
             columns:
               - column:
                   name: repair_type_id
@@ -266,15 +230,15 @@ databaseChangeLog:
                   type: BIGINT
         - addPrimaryKey:
             columnNames: repair_type_id, master_id
-            tableName: master_repair_types
+            tableName: master_repair
         - addForeignKeyConstraint:
-            baseTableName: master_repair_types
+            baseTableName: master_repair
             baseColumnNames: repair_type_id
             referencedTableName: repair_types
             referencedColumnNames: id
             constraintName: fk_master_repair_type
         - addForeignKeyConstraint:
-            baseTableName: master_repair_types
+            baseTableName: master_repair
             baseColumnNames: master_id
             referencedTableName: masters
             referencedColumnNames: id
@@ -282,7 +246,7 @@ databaseChangeLog:
 
   - changeSet:
       id: 9
-      author: yourname
+      author: sryosz
       changes:
         - createTable:
             tableName: spares_order
@@ -319,3 +283,114 @@ databaseChangeLog:
             columns:
               - column:
                   name: repair_id
+
+  - changeSet:
+      id: 12
+      author: sryosz
+      changes:
+        - createTable:
+            tableName: service_stations
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+              - column:
+                  name: phone
+                  type: VARCHAR(50)
+        - createIndex:
+            indexName: idx_stations_name
+            tableName: service_stations
+            columns:
+              - column:
+                  name: name
+
+  - changeSet:
+      id: 13
+      author: sryosz
+      changes:
+        - addColumn:
+            tableName: spares
+            columns:
+              - column:
+                  name: repair_type_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: spares
+            baseColumnNames: repair_type_id
+            referencedTableName: repair_types
+            referencedColumnNames: id
+            constraintName: fk_spare_repair_type
+
+  - changeSet:
+      id: 14
+      author: sryosz
+      changes:
+        - createTable:
+            tableName: car_brands
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+        - insert:
+            tableName: car_brands
+            columns:
+              - column: { name: name, value: "Toyota" }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "BMW" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Mercedes-Benz" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Audi" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Volkswagen" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Ford" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Chevrolet" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Honda" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Hyundai" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Kia" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Mazda" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Nissan" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Peugeot" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Renault" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Skoda" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Subaru" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Suzuki" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Tesla" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Volvo" } ] }
+        - insert: { tableName: car_brands, columns: [ { name: name, value: "Lexus" } ] }
+
+  - changeSet:
+      id: 15
+      author: sryosz
+      changes:
+        - addColumn:
+            tableName: repairs
+            columns:
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  defaultValue: 'WAITING'
+              - column:
+                  name: started_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: true
+              - column:
+                  name: finished_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: true

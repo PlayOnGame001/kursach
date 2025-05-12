@@ -2,14 +2,10 @@ package testservice;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.station.entity.SpareOrder;
-import org.station.repository.SpareOrderRepository;
-import org.station.service.SpareOrderService;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class TestSpareOrderService {

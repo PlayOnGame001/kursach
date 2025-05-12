@@ -3,9 +3,6 @@ package testentity;
 import org.junit.jupiter.api.Test;
 import org.station.entity.Repair;
 import org.station.entity.Spare;
-import org.station.entity.SpareOrder;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class TestSpareOrder {
 
