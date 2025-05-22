@@ -2,17 +2,29 @@ package org.station.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.station.entity.Master;
 
 import java.util.List;
 
 public interface MasterRepository extends JpaRepository<Master, Long> {
 
+    // Новый метод для безопасной загрузки всех мастеров без JOIN с ServiceStation
+    @Query("SELECT m FROM Master m")
+    List<Master> findAllMastersWithoutJoin();
+
+    // Новый метод для безопасной загрузки всех мастеров с LEFT JOIN
+    // (это даст null для несуществующих станций вместо ошибки)
+    @Query("SELECT m FROM Master m LEFT JOIN m.serviceStation s")
+    List<Master> findAllMastersWithLeftJoin();
+
+    // Оригинальные методы ниже...
+
     // 1. JOIN + сортировка: Майстри з відображенням їх спеціалізації, відсортовані за СТО
     @Query("SELECT m FROM Master m ORDER BY m.serviceStationName ASC")
     List<Master> findAllMastersSortedByStation();
 
-    // 2. LIKE: Майстри, чиє ім’я починається на певну літеру
+    // 2. LIKE: Майстри, чиє ім'я починається на певну літеру
     @Query("SELECT m FROM Master m WHERE m.fullName LIKE :prefix%")
     List<Master> findByNameStartsWith(String prefix);
 
@@ -75,4 +87,10 @@ public interface MasterRepository extends JpaRepository<Master, Long> {
         WHERE m.specialization IS NULL
         """, nativeQuery = true)
     List<Object[]> getMastersWithComment();
+
+    @Query("SELECT m FROM Master m WHERE LOWER(m.fullName) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<Master> findByNameContainingIgnoreCase(@Param("name") String name);
+
+    @Query("SELECT m FROM Master m WHERE m.serviceStationName = :station")
+    List<Master> findAllByServiceStation(@Param("station") String serviceStationName);
 }

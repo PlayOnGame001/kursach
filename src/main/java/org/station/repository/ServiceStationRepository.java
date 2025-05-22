@@ -2,9 +2,11 @@ package org.station.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.station.entity.ServiceStation;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ServiceStationRepository extends JpaRepository<ServiceStation, Long> {
 
@@ -67,4 +69,12 @@ public interface ServiceStationRepository extends JpaRepository<ServiceStation, 
         WHERE s.phone IS NULL
         """, nativeQuery = true)
     List<Object[]> getStationsWithPhoneComment();
+
+    @Query("SELECT s FROM ServiceStation s WHERE s.name = :name")
+    Optional<ServiceStation> findByName(@Param("name") String name);
+
+    @Query("SELECT s FROM ServiceStation s WHERE s.address LIKE %:address%")
+    List<ServiceStation> findByAddressContaining(@Param("address") String address);
+
+
 }

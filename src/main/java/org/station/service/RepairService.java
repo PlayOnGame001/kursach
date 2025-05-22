@@ -25,7 +25,7 @@ public class RepairService {
     }
 
     public List<Repair> getAllRepairs() {
-        return repairRepository.findAll();
+        return repairRepository.findAllRepairsDetailed();
     }
 
     public Optional<Repair> getRepairById(Long id) {
@@ -63,6 +63,10 @@ public class RepairService {
 
     public List<Repair> getAllRepairsWithSpares() {
         return repairRepository.findAllWithRepairTypeAndSpares();
+    }
+
+    public List<Repair> getAllRepairsWithDetails(String stationName) {
+        return repairRepository.findAllWithDetailsByStation(stationName);
     }
 
 }

@@ -2,6 +2,7 @@ package org.station.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.station.entity.Spare;
 
 import java.util.List;
@@ -57,4 +58,8 @@ public interface SpareRepository extends JpaRepository<Spare, Long> {
         WHERE NOT EXISTS (SELECT 1 FROM spares_order o WHERE o.spare_id = s.id)
         """, nativeQuery = true)
     List<Object[]> getSparesWithComment();
+
+    @Query("SELECT s FROM Spare s WHERE LOWER(s.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<Spare> searchByName(@Param("name") String name);
+
 }

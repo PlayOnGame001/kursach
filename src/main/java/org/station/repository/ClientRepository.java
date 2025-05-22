@@ -7,6 +7,7 @@ import org.station.entity.Client;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface ClientRepository extends JpaRepository<Client, Long> {
 
@@ -51,6 +52,13 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
         """, nativeQuery = true)
     List<Object[]> getClientsWithCarComment();
 
-    List<Client> findClientsByProblem(String problem);
-    List<Client> findClientsByCarBrand(String brand);
+    @Query("SELECT c FROM Client c WHERE c.car.id = :carId")
+    Optional<Client> findClientByCarId(@Param("carId") Long carId);
+
+    @Query("SELECT c FROM Client c WHERE LOWER(c.problem) LIKE LOWER(CONCAT('%', :problem, '%'))")
+    List<Client> findClientsByProblem(@Param("problem") String problem);
+
+    @Query("SELECT cl FROM Client cl WHERE cl.car.brand = :brand")
+    List<Client> findClientsByCarBrand(@Param("brand") String brand);
+
 }

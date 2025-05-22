@@ -5,11 +5,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.station.entity.Car;
+import org.station.entity.Client;
 import org.station.entity.Repair;
 import org.station.entity.Master;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CarRepository extends JpaRepository<Car, Long> {
@@ -55,5 +57,10 @@ public interface CarRepository extends JpaRepository<Car, Long> {
         """, nativeQuery = true)
     List<Object[]> getMastersWithRepairStatus();
 
-    List<Car> getCarsByBrand(String brand);
+    @Query("SELECT c FROM Client c WHERE c.car.id = :carId")
+    Optional<Client> findClientByCarId(@Param("carId") Long carId);
+
+    @Query("SELECT c FROM Car c WHERE c.brand = :brand")
+    List<Car> getCarsByBrand(@Param("brand") String brand);
+
 }

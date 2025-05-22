@@ -2,6 +2,7 @@ package org.station.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.station.entity.Repair;
 
 import java.time.LocalDate;
@@ -58,5 +59,23 @@ public interface RepairRepository extends JpaRepository<Repair, Long> {
 
     @Query("SELECT r FROM Repair r JOIN FETCH r.repairType rt LEFT JOIN FETCH rt.spares")
     List<Repair> findAllWithRepairTypeAndSpares();
+
+    @Query("SELECT r FROM Repair r JOIN FETCH r.car c JOIN FETCH r.master m ORDER BY r.startDate")
+    List<Repair> findAllRepairsDetailed();
+
+    @Query("SELECT r FROM Repair r WHERE r.master.id = :masterId")
+    List<Repair> findRepairsByMasterId(@Param("masterId") Long masterId);
+
+    @Query("SELECT r FROM Repair r WHERE r.car.id = :carId")
+    List<Repair> findRepairsByCarId(@Param("carId") Long carId);
+
+    @Query("SELECT r FROM Repair r " +
+            "JOIN FETCH r.repairType rt " +
+            "LEFT JOIN FETCH rt.spares " +
+            "JOIN FETCH r.car c " +
+            "JOIN FETCH r.master m " +
+            "WHERE m.serviceStation.name = :stationName")
+    List<Repair> findAllWithDetailsByStation(@Param("stationName") String stationName);
+
 
 }

@@ -161,6 +161,47 @@ databaseChangeLog:
                   name: name
 
   - changeSet:
+      id: 6.1
+      author: sryosz
+      changes:
+        - insert:
+            tableName: repair_types
+            columns:
+              - column:
+                  name: name
+                  value: "Діагностика"
+              - column:
+                  name: description
+                  value: "Перевірка та визначення несправностей автомобіля"
+        - insert:
+            tableName: repair_types
+            columns:
+              - column:
+                  name: name
+                  value: "Заміна олії"
+              - column:
+                  name: description
+                  value: "Повна заміна масла та фільтра"
+        - insert:
+            tableName: repair_types
+            columns:
+              - column:
+                  name: name
+                  value: "Ремонт двигуна"
+              - column:
+                  name: description
+                  value: "Комплексний ремонт двигуна"
+        - insert:
+            tableName: repair_types
+            columns:
+              - column:
+                  name: name
+                  value: "Гальмівна система"
+              - column:
+                  name: description
+                  value: "Перевірка та ремонт гальмівної системи"
+
+  - changeSet:
       id: 7
       author: sryosz
       changes:
@@ -394,3 +435,77 @@ databaseChangeLog:
                   type: TIMESTAMP
                   constraints:
                     nullable: true
+  - changeSet:
+      id: 16
+      author: sryosz
+      changes:
+        - addColumn:
+            tableName: master_repair
+            columns:
+              - column:
+                  name: repair_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: master_repair
+            baseColumnNames: repair_id
+            referencedTableName: repairs
+            referencedColumnNames: id
+            constraintName: fk_master_repair_repair
+
+  - changeSet:
+      id: 17
+      author: sryosz
+      changes:
+        - createTable:
+            tableName: persons
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT AUTO_INCREMENT
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: full_name
+                  type: VARCHAR(255)
+              - column:
+                  name: phone_number
+                  type: VARCHAR(50)
+              - column:
+                  name: service_station_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: persons
+            baseColumnNames: service_station_id
+            referencedTableName: service_stations
+            referencedColumnNames: id
+            constraintName: fk_person_service_station
+
+        - addColumn:
+            tableName: clients
+            columns:
+              - column:
+                  name: person_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: clients
+            baseColumnNames: person_id
+            referencedTableName: persons
+            referencedColumnNames: id
+            constraintName: fk_client_person
+
+        - addColumn:
+            tableName: masters
+            columns:
+              - column:
+                  name: person_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            baseTableName: masters
+            baseColumnNames: person_id
+            referencedTableName: persons
+            referencedColumnNames: id
+            constraintName: fk_master_person

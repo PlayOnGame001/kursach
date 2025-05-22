@@ -26,7 +26,12 @@ public class MasterService {
     }
 
     public List<Master> getAllMasters() {
-        return masterRepository.findAll();
+        try {
+            return masterRepository.findAllMastersWithoutJoin();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
     }
 
     public Optional<Master> getMasterById(long id) {
